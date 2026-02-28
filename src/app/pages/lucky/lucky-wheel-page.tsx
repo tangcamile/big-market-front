@@ -10,7 +10,7 @@ import {RaffleAwardVO} from "@/types/RaffleAwardVO";
 
 export function LuckyWheelPage() {
     const [prizes, setPrizes] = useState([{}])
-    const myLucky = useRef()
+    const myLucky = useRef(null)
 
     const [blocks] = useState([
         {padding: '10px', background: '#869cfa', imgs: [{src: "https://bugstack.cn/images/system/blog-03.png"}]}
@@ -55,7 +55,10 @@ export function LuckyWheelPage() {
         const queryParams = new URLSearchParams(window.location.search);
         const strategyId = Number(queryParams.get('strategyId'));
         const result = await randomRaffle(strategyId);
-        const {code, info, data} = await result.json();
+        const responseData = await result.json();
+        const code = responseData.code;
+        const info = responseData.info;
+        const data = responseData.data;
         if (code != "0000") {
             window.alert("随机抽奖失败 code:" + code + " info:" + info)
             return;

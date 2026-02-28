@@ -1,10 +1,10 @@
 "use client";
 
-import {LuckyWheelPage} from "@/app/pages/lucky/lucky-wheel-page";
-import {LuckyGridPage} from "@/app/pages/lucky/lucky-grid-page";
 import dynamic from "next/dynamic";
 
-const StrategyArmoryButton = dynamic(async()=>(await import("./components/StrategyArmory")).StrategyArmory)
+const StrategyArmoryButton = dynamic(async()=>(await import("./components/StrategyArmory")).StrategyArmory, {ssr: false})
+const LuckyWheelPage = dynamic(async()=>(await import("./pages/lucky/lucky-wheel-page")).LuckyWheelPage, {ssr: false})
+const LuckyGridPage = dynamic(async()=>(await import("./pages/lucky/lucky-grid-page")).LuckyGridPage, {ssr: false})
 
 export default function Home() {
 

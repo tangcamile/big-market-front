@@ -9,8 +9,6 @@ import {queryRaffleAwardList, randomRaffle} from '@/apis'
 import {RaffleAwardVO} from "@/types/RaffleAwardVO";
 
 export function LuckyWheelPage() {
-    const searchParams = useSearchParams();
-    const strategyId = Number(searchParams.get('strategyId'));
     const [prizes, setPrizes] = useState([{}])
     const myLucky = useRef()
 
@@ -30,59 +28,46 @@ export function LuckyWheelPage() {
 
     // 查询奖品列表
     const queryRaffleAwardListHandle = async () => {
-        if (!strategyId || isNaN(strategyId)) {
-            console.warn("strategyId 无效:", strategyId);
+        const queryParams = new URLSearchParams(window.location.search);
+        const strategyId = Number(queryParams.get('strategyId'));
+        const result = await queryRaffleAwardList(strategyId);
+        const {code, info, data} = await result.json();
+        if (code != "0000") {
+            window.alert("获取抽奖奖品列表失败 code:" + code + " info:" + info)
             return;
         }
-        try {
-            const result = await queryRaffleAwardList(strategyId);
-            const responseData = await result.json();
-            const {code, info, data} = responseData;
-            if (code != "0000") {
-                window.alert("获取抽奖奖品列表失败 code:" + code + " info:" + info)
-                return;
-            }
 
-            // 创建一个新的奖品数组
-            const prizes = data.map((award: RaffleAwardVO, index: number) => {
-                const background = index % 2 === 0 ? '#e9e8fe' : '#b8c5f2';
-                return {
-                    background: background,
-                    fonts: [{id: award.awardId, text: award.awardTitle, top: '15px'}]
-                };
-            });
+        // 创建一个新的奖品数组
+        const prizes = data.map((award: RaffleAwardVO, index: number) => {
+            const background = index % 2 === 0 ? '#e9e8fe' : '#b8c5f2';
+            return {
+                background: background,
+                fonts: [{id: award.awardId, text: award.awardTitle, top: '15px'}]
+            };
+        });
 
-            // 设置奖品数据
-            setPrizes(prizes)
-        } catch (error) {
-            console.error("获取奖品列表异常:", error);
-            window.alert("获取抽奖奖品列表异常，请检查网络或控制台日志");
-        }
+        // 设置奖品数据
+        setPrizes(prizes)
     }
 
     // 调用随机抽奖
     const randomRaffleHandle = async () => {
-        try {
-            const result = await randomRaffle(strategyId);
-            const {code, info, data} = await result.json();
-            if (code != "0000") {
-                window.alert("随机抽奖失败 code:" + code + " info:" + info)
-                return;
-            }
-            // 为了方便测试，mock 的接口直接返回 awardIndex 也就是奖品列表中第几个奖品。
-            return data.awardIndex ? data.awardIndex : prizes.findIndex(prize =>
-                //@ts-ignore
-                prize.fonts.some(font => font.id === data.awardId)
-            ) + 1;
-        } catch (error) {
-            console.error("随机抽奖异常:", error);
-            window.alert("随机抽奖异常，请检查网络或控制台日志");
+        const queryParams = new URLSearchParams(window.location.search);
+        const strategyId = Number(queryParams.get('strategyId'));
+        const result = await randomRaffle(strategyId);
+        const {code, info, data} = await result.json();
+        if (code != "0000") {
+            window.alert("随机抽奖失败 code:" + code + " info:" + info)
+            return;
         }
+        // 为了方便测试，mock 的接口直接返回 awardIndex 也就是奖品列表中第几个奖品。
+        return data.awardIndex - 1;
     }
 
     useEffect(() => {
-        queryRaffleAwardListHandle();
-    }, [strategyId])
+        queryRaffleAwardListHandle().then(r => {
+        });
+    }, [])
 
     return <div>
         <LuckyWheel

@@ -1,5 +1,8 @@
 // 请求地址
-const apiHostUrl = process.env.API_HOST_URL ? process.env.API_HOST_URL : "https://m1.apifoxmock.com/m1/7863064-7612528-default";
+if (!process.env.API_HOST_URL) {
+    throw new Error("API_HOST_URL 环境变量未配置，请检查 .env.local 或部署环境变量！");
+}
+const apiHostUrl = process.env.API_HOST_URL;
 
 /**
  * 装配抽奖

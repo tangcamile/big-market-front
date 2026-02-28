@@ -1,3 +1,4 @@
+import {Suspense} from "react";
 import {LuckyWheelPage} from "@/app/pages/lucky/lucky-wheel-page";
 import {LuckyGridPage} from "@/app/pages/lucky/lucky-grid-page";
 
@@ -12,7 +13,9 @@ export default function Home() {
             {/* 中间的两个div元素 */}
             <div className="flex flex-col md:flex-row gap-4 mb-8">
                 <div className="w-full md:w-1/2 p-6 bg-white shadow-lg rounded-lg flex items-center justify-center">
-                    <LuckyWheelPage/>
+                    <Suspense fallback={<div>加载中...</div>}>
+                        <LuckyWheelPage/>
+                    </Suspense>
                 </div>
                 <div className="w-full md:w-1/2 p-6 bg-white shadow-lg rounded-lg flex items-center justify-center">
                     <LuckyGridPage/>

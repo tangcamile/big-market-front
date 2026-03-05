@@ -1,16 +1,15 @@
 "use client"
 
 import React, {useEffect, useRef, useState} from 'react'
-import {useSearchParams} from 'next/navigation'
 // @ts-ignore
 import {LuckyWheel} from '@lucky-canvas/react'
 
-import {queryRaffleAwardList, randomRaffle} from '@/apis'
+import {queryRaffleAwardList, draw} from '@/apis'
 import {RaffleAwardVO} from "@/types/RaffleAwardVO";
 
 export function LuckyWheelPage() {
     const [prizes, setPrizes] = useState([{}])
-    const myLucky = useRef(null)
+    const myLucky = useRef<any>(null)
 
     const [blocks] = useState([
         {padding: '10px', background: '#869cfa', imgs: [{src: "https://bugstack.cn/images/system/blog-03.png"}]}
@@ -28,48 +27,96 @@ export function LuckyWheelPage() {
 
     // 查询奖品列表
     const queryRaffleAwardListHandle = async () => {
-        const queryParams = new URLSearchParams(window.location.search);
-        const strategyId = Number(queryParams.get('strategyId'));
-        const result = await queryRaffleAwardList(strategyId);
-        const {code, info, data} = await result.json();
-        if (code != "0000") {
-            window.alert("获取抽奖奖品列表失败 code:" + code + " info:" + info)
-            return;
+        try {
+            const queryParams = new URLSearchParams(window.location.search);
+            const userIdParam = queryParams.get('userId');
+            const activityIdParam = queryParams.get('activityId');
+
+            // 参数校验
+            if (!userIdParam || !activityIdParam) {
+                window.alert("获取抽奖奖品列表失败 code:0001 info:请在URL中提供userId和activityId参数");
+                return;
+            }
+
+            const userId = userIdParam;
+            const activityId = Number(activityIdParam);
+
+            if (isNaN(activityId)) {
+                window.alert("获取抽奖奖品列表失败 code:0001 info:activityId必须是数字");
+                return;
+            }
+
+            const result = await queryRaffleAwardList(userId, activityId);
+
+            if (!result.ok) {
+                window.alert(`获取抽奖奖品列表失败 HTTP ${result.status}: ${result.statusText}`);
+                return;
+            }
+
+            const {code, info, data} = await result.json();
+            if (code != "0000") {
+                window.alert("获取抽奖奖品列表失败 code:" + code + " info:" + info)
+                return;
+            }
+
+            // 创建一个新的奖品数组
+            const prizes = data.map((award: RaffleAwardVO, index: number) => {
+                const background = index % 2 === 0 ? '#e9e8fe' : '#b8c5f2';
+                return {
+                    background: background,
+                    fonts: [{id: award.awardId, text: award.awardTitle, top: '15px'}]
+                };
+            });
+
+            // 设置奖品数据
+            setPrizes(prizes)
+        } catch (error) {
+            console.error("查询抽奖奖品列表异常:", error);
+            window.alert("获取抽奖奖品列表失败: 网络错误或服务器无响应");
         }
-
-        // 创建一个新的奖品数组
-        const prizes = data.map((award: RaffleAwardVO, index: number) => {
-            const background = index % 2 === 0 ? '#e9e8fe' : '#b8c5f2';
-            return {
-                background: background,
-                fonts: [{id: award.awardId, text: award.awardTitle, top: '15px'}]
-            };
-        });
-
-        // 设置奖品数据
-        setPrizes(prizes)
     }
 
     // 调用随机抽奖
     const randomRaffleHandle = async () => {
-        const queryParams = new URLSearchParams(window.location.search);
-        const strategyId = Number(queryParams.get('strategyId'));
-        const result = await randomRaffle(strategyId);
-        const responseData = await result.json();
-        const code = responseData.code;
-        const info = responseData.info;
-        const data = responseData.data;
-        if (code != "0000") {
-            window.alert("随机抽奖失败 code:" + code + " info:" + info)
-            return;
+        try {
+            const queryParams = new URLSearchParams(window.location.search);
+            const userIdParam = queryParams.get('userId');
+            const activityIdParam = queryParams.get('activityId');
+
+            // 参数校验
+            if (!userIdParam || !activityIdParam) {
+                window.alert("随机抽奖失败 code:0001 info:请在URL中提供userId和activityId参数");
+                return;
+            }
+
+            const userId = userIdParam;
+            const activityId = Number(activityIdParam);
+
+            const result = await draw(userId, activityId);
+
+            if (!result.ok) {
+                window.alert(`随机抽奖失败 HTTP ${result.status}: ${result.statusText}`);
+                return;
+            }
+
+            const responseData = await result.json();
+            const code = responseData.code;
+            const info = responseData.info;
+            const data = responseData.data;
+            if (code != "0000") {
+                window.alert("随机抽奖失败 code:" + code + " info:" + info)
+                return;
+            }
+            // 为了方便测试，mock 的接口直接返回 awardIndex 也就是奖品列表中第几个奖品。
+            return data.awardIndex - 1;
+        } catch (error) {
+            console.error("随机抽奖异常:", error);
+            window.alert("随机抽奖失败: 网络错误或服务器无响应");
         }
-        // 为了方便测试，mock 的接口直接返回 awardIndex 也就是奖品列表中第几个奖品。
-        return data.awardIndex - 1;
     }
 
     useEffect(() => {
-        queryRaffleAwardListHandle().then(r => {
-        });
+        queryRaffleAwardListHandle();
     }, [])
 
     return <div>

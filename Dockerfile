@@ -14,6 +14,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# 构建时需要的环境变量（必须在构建时传入）
+ARG NEXT_PUBLIC_API_HOST_URL
+ENV NEXT_PUBLIC_API_HOST_URL=$NEXT_PUBLIC_API_HOST_URL
+
 RUN npm run build
 
 FROM base AS runner

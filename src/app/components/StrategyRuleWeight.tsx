@@ -17,7 +17,9 @@ export function StrategyRuleWeight({refresh}) {
             return;
         }
 
-        setStrategyRuleWeightVOList(data)
+        // 按照 ruleWeightCount 升序排列（次数少的在前）
+        const sortedData = data.sort((a, b) => a.ruleWeightCount - b.ruleWeightCount);
+        setStrategyRuleWeightVOList(sortedData)
     }
 
     // 这是你的进度条组件
@@ -49,14 +51,29 @@ export function StrategyRuleWeight({refresh}) {
                     </div>
                 </div>
                 {
-                    awards && <div className="mt-2">
-                        <div className="text-xs text-black">必中奖品范围</div>
+                    awards && <div className="mt-3 p-3 rounded-lg" style={{
+                        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        backdropFilter: 'blur(10px)'
+                    }}>
+                        <div className="text-sm font-semibold text-white mb-2" style={{
+                            background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                        }}>
+                            ✨ 必中奖品范围
+                        </div>
                         {// @ts-ignore
 
                             awards.map((award, idx) => (
 
-                                <div key={award.awardId} className="text-xs text-white">
-                                    {idx + 1}. {award.awardTitle}
+                                <div key={award.awardId} className="text-sm text-white leading-7 hover:text-blue-300 transition-colors duration-200" style={{
+                                    paddingLeft: '8px',
+                                    borderLeft: '2px solid rgba(59, 130, 246, 0.5)',
+                                    marginBottom: '4px'
+                                }}>
+                                    <span style={{color: '#60a5fa', fontWeight: '600'}}>{idx + 1}.</span> {award.awardTitle}
                                 </div>
                             ))}
                     </div>
